@@ -103,8 +103,19 @@ router.get('/:contactId', async (req, res) => {
     try {
         const { contactId } = req.params;
         const userId = req.user.userId;
-        const limit = parseInt(req.query.limit) || 50;
+        
+        // Validate ObjectId format
+        if (!mongoose.Types.ObjectId.isValid(contactId)) {
+            return res.status(400).json({ error: 'Invalid contact ID format.' });
+        }
+        
+        const limit = Math.min(parseInt(req.query.limit) || 50, 100); // Cap at 100
         const before = req.query.before ? new Date(req.query.before) : new Date();
+        
+        // Ensure valid date
+        if (isNaN(before.getTime())) {
+            return res.status(400).json({ error: 'Invalid date format.' });
+        }
 
         // Fetch messages where either user is sender or receiver
         const messages = await Message.find({

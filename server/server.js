@@ -47,14 +47,14 @@ const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173';
 const app = express();
 const server = http.createServer(app);
 
-// Parse JSON request bodies
-app.use(express.json({ limit: '10mb' }));
+// Parse JSON request bodies with reasonable size limits
+app.use(express.json({ limit: '1mb' })); // Limit to 1MB for messages and data
 
-// CORS configuration — allow all origins for local development testing
+// CORS configuration — restrict to frontend origin
 app.use(cors({
-    origin: '*',
+    origin: CORS_ORIGIN,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    credentials: false // Must be false when origin is '*'
+    credentials: false
 }));
 
 // ---- API Routes ----
@@ -70,7 +70,7 @@ app.get('/api/health', (req, res) => {
 // ---- Socket.io Setup ----
 const io = new Server(server, {
     cors: {
-        origin: '*',
+        origin: CORS_ORIGIN,
         methods: ['GET', 'POST'],
     },
 });

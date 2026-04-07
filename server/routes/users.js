@@ -35,10 +35,17 @@ router.get('/search', async (req, res) => {
         if (!q || q.trim().length === 0) {
             return res.json({ users: [] });
         }
+        
+        // Limit search query length to prevent regex DoS
+        if (q.trim().length > 50) {
+            return res.status(400).json({ error: 'Search query too long.' });
+        }
 
         // Case-insensitive regex search for partial username matches
+        // Escape special regex characters to prevent injection
+        const escapedQuery = q.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const users = await User.find({
-            username: { $regex: q.trim(), $options: 'i' },
+            username: { $regex: escapedQuery, $options: 'i' },
             _id: { $ne: req.user.userId }, // Exclude the current user
         })
             .select('username publicKey createdAt')

@@ -32,7 +32,14 @@
  * SECURITY NOTE: All cryptographic operations use the browser's native
  * Web Crypto API (window.crypto.subtle). This is a hardware-backed,
  * audited implementation — much safer than third-party JavaScript libraries.
+ * 
+ * ERROR HANDLING: All crypto operations throw descriptive errors if they fail.
  */
+
+// Check if Web Crypto API is available
+if (!window.crypto || !window.crypto.subtle) {
+    throw new Error('Web Crypto API is not available. This application requires HTTPS to function properly.');
+}
 
 // ---- Helper: Convert between ArrayBuffer and Base64 ----
 

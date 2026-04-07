@@ -20,7 +20,7 @@ const User = require('../models/User');
 const { authMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
-const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_jwt_key_change_me_in_production';
+const JWT_SECRET = process.env.JWT_SECRET || 'dev_only_change_me_in_production_' + Date.now();
 
 /**
  * POST /api/auth/register
@@ -39,9 +39,17 @@ router.post('/register', async (req, res) => {
         if (!username || !password || !publicKey) {
             return res.status(400).json({ error: 'Username, password, and public key are required.' });
         }
+        
+        // Validate username format (alphanumeric, underscore, hyphen only)
+        if (!/^[a-zA-Z0-9_-]{3,30}$/.test(username)) {
+            return res.status(400).json({ error: 'Username must be 3-30 characters and contain only letters, numbers, hyphens, or underscores.' });
+        }
 
-        if (password.length < 6) {
-            return res.status(400).json({ error: 'Password must be at least 6 characters.' });
+        if (password.length < 8) {
+            return res.status(400).json({ error: 'Password must be at least 8 characters.' });
+        }
+        if (!/\d/.test(password)) {
+            return res.status(400).json({ error: 'Password must contain at least one number.' });
         }
 
         // Check if username already exists

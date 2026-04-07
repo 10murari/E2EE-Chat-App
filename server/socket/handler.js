@@ -45,6 +45,20 @@ function initializeSocketHandlers(io) {
                 if (!receiverId || !ciphertext || !iv) {
                     return socket.emit('error_message', { error: 'Missing message data.' });
                 }
+                
+                // Validate receiverId is a valid ObjectId
+                const mongoose = require('mongoose');
+                if (!mongoose.Types.ObjectId.isValid(receiverId)) {
+                    return socket.emit('error_message', { error: 'Invalid receiver ID.' });
+                }
+                
+                // Validate ciphertext and IV size
+                if (typeof ciphertext !== 'string' || ciphertext.length > 50000) {
+                    return socket.emit('error_message', { error: 'Invalid ciphertext size.' });
+                }
+                if (typeof iv !== 'string' || iv.length > 100) {
+                    return socket.emit('error_message', { error: 'Invalid IV.' });
+                }
 
                 // Save the encrypted message to MongoDB
                 // NOTE: The server stores ciphertext — it cannot read the message.

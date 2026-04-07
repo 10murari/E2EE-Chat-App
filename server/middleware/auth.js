@@ -15,7 +15,7 @@
 
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_jwt_key_change_me_in_production';
+const JWT_SECRET = process.env.JWT_SECRET || 'dev_only_change_me_in_production_' + Date.now();
 
 /**
  * Express middleware: verify JWT from the Authorization header.

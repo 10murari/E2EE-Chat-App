@@ -51,7 +51,7 @@ export default function LoginForm({ onSwitchToRegister, onLoginSuccess }) {
                     const localPublicKey = getStoredPublicKey(username);
                     if (localPublicKey) {
                         setStatus('Syncing keys with server...');
-                        await fetch(`${API_URL}/auth/update-key`, {
+                        const keyRes = await fetch(`${API_URL}/auth/update-key`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -59,14 +59,17 @@ export default function LoginForm({ onSwitchToRegister, onLoginSuccess }) {
                             },
                             body: JSON.stringify({ publicKey: localPublicKey }),
                         });
+                        if (!keyRes.ok) {
+                            throw new Error('Failed to sync keys with server');
+                        }
                     }
 
                     onLoginSuccess(privateKey);
                     return;
-                } catch {
+                } catch (decryptErr) {
                     // Decryption failed — keys might belong to a different account.
                     // Fall through to regenerate keys.
-                    console.warn('Local key decryption failed, regenerating keys...');
+                    console.warn('Local key decryption failed, regenerating keys...', decryptErr.message);
                 }
             }
 
@@ -82,7 +85,7 @@ export default function LoginForm({ onSwitchToRegister, onLoginSuccess }) {
 
             // Update public key on the server
             setStatus('Updating encryption keys on server...');
-            await fetch(`${API_URL}/auth/update-key`, {
+            const updateRes = await fetch(`${API_URL}/auth/update-key`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -90,6 +93,9 @@ export default function LoginForm({ onSwitchToRegister, onLoginSuccess }) {
                 },
                 body: JSON.stringify({ publicKey: publicKeyJwk }),
             });
+            if (!updateRes.ok) {
+                throw new Error('Failed to update encryption keys on server');
+            }
 
             onLoginSuccess(keyPair.privateKey);
 
